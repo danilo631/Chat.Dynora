@@ -14,21 +14,23 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    margin: 0;
     overflow: hidden;
 }
 
 /* Container principal do chat */
 .chat-container {
     width: 100%;
-    max-width: 450px;  /* Limite máximo de largura */
+    max-width: 500px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 15px;
     padding: 20px;
     box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
     display: flex;
     flex-direction: column;
-    height: 90vh;
-    max-height: 600px; /* Limita a altura */
+    height: 80vh; /* Altura do chat ajustada */
+    max-height: 700px;
+    overflow: hidden;
 }
 
 /* Título do chatbot */
@@ -36,11 +38,12 @@ h1 {
     text-align: center;
     color: #00ffe1;
     margin-bottom: 20px;
+    font-size: 1.8rem;
 }
 
 /* Caixa de chat com rolagem */
 .chat-box {
-    flex: 1;  /* Preenche o espaço restante */
+    flex: 1;
     overflow-y: auto;
     background: rgba(0, 0, 0, 0.4);
     padding: 10px;
@@ -49,12 +52,15 @@ h1 {
     scrollbar-color: #00ffe1 transparent;
     display: flex;
     flex-direction: column;
+    overflow: auto;
 }
 
 /* Caixa de input e botão */
 .input-box {
     display: flex;
     gap: 10px;
+    margin-top: 10px;
+    justify-content: space-between;
 }
 
 /* Estilo do input */
@@ -65,6 +71,7 @@ input[type="text"] {
     border-radius: 8px;
     margin-right: 10px;
     font-size: 1rem;
+    font-family: 'Roboto', sans-serif;
 }
 
 /* Estilo do botão */
@@ -92,26 +99,34 @@ button:hover {
 
 /* Media Queries para responsividade */
 
-@media (max-width: 768px) {
+/* Para Tablets e Dispositivos Menores */
+@media (max-width: 1024px) {
     .chat-container {
+        max-width: 90%;
         padding: 15px;
     }
 
-    input[type="text"], button {
-        font-size: 0.9rem; /* Tamanho de fonte menor em dispositivos menores */
-        padding: 10px;
+    h1 {
+        font-size: 1.6rem;
     }
 
-    h1 {
-        font-size: 1.5rem; /* Tamanho do título ajustado */
+    input[type="text"], button {
+        font-size: 1rem;
+        padding: 10px;
     }
 }
 
-@media (max-width: 480px) {
+/* Para Smartphones - Ajustes de Layout para Reduzir o Tamanho */
+@media (max-width: 768px) {
     .chat-container {
-        width: 100%;
-        height: auto; /* Altura auto em telas muito pequenas */
-        max-height: none;
+        max-width: 100%;
+        padding: 10px;
+        height: 70vh; /* Altura reduzida para telas pequenas */
+        max-height: 600px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
     }
 
     .chat-box {
@@ -119,11 +134,68 @@ button:hover {
     }
 
     input[type="text"], button {
-        font-size: 0.85rem; /* Reduz o tamanho da fonte ainda mais */
-        padding: 8px;
+        font-size: 1rem;
+        padding: 10px;
+    }
+
+    .input-box {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+/* Para Smartphones Pequenos */
+@media (max-width: 480px) {
+    .chat-container {
+        max-width: 100%;
+        padding: 10px;
+        height: 60vh; /* Mais espaço para o chat */
+        max-height: none;
     }
 
     h1 {
-        font-size: 1.3rem;
+        font-size: 1.4rem;
+    }
+
+    .chat-box {
+        margin-bottom: 15px;
+    }
+
+    input[type="text"], button {
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+
+    .input-box {
+        flex-direction: column;
+        gap: 6px;
+    }
+}
+
+/* Para Telas Extremamente Pequenas - Ajuste do Zoom */
+@media (max-width: 320px) {
+    body {
+        transform: scale(0.85);
+        transform-origin: top center;
+    }
+
+    .chat-container {
+        padding: 8px;
+        height: auto;
+        max-height: none;
+    }
+
+    h1 {
+        font-size: 1.2rem;
+    }
+
+    input[type="text"], button {
+        font-size: 0.8rem;
+        padding: 6px;
+    }
+
+    .input-box {
+        flex-direction: column;
+        gap: 5px;
     }
 }
