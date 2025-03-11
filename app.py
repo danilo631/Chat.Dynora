@@ -4,8 +4,17 @@ from neural_network import AdvancedChatbot
 import os
 import nltk
 
-nltk.download('wordnet')
-nltk.download('omw-1.4')
+# Diretório onde os dados serão baixados
+nltk_data_dir = os.path.join(os.getcwd(), 'nltk_data')
+os.makedirs(nltk_data_dir, exist_ok=True)
+
+# Faz o download dos recursos necessários
+nltk.download('rslp', download_dir=nltk_data_dir)
+nltk.download('wordnet', download_dir=nltk_data_dir)
+nltk.download('omw-1.4', download_dir=nltk_data_dir)
+
+# Adiciona o caminho dos dados para o NLTK
+nltk.data.path.append(nltk_data_dir)
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
