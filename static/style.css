@@ -1,103 +1,129 @@
-body {
+/* Reset básico para remover margens e padding */
+* {
     margin: 0;
-    font-family: 'Poppins', sans-serif;
-    background: radial-gradient(circle, #0f2027, #203a43, #2c5364);
-    color: #ffffff;
-    height: 100vh;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Corpo da página */
+body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(120deg, #0f0f0f, #1a1a1a);
+    color: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-.container {
-    width: 100%;
-    max-width: 500px;
-}
-
-.chat-interface {
-    background: rgba(15, 32, 39, 0.85);
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    height: 100vh;
     overflow: hidden;
 }
 
-.chat-header {
-    background: linear-gradient(90deg, #00c6ff, #0072ff);
+/* Container principal do chat */
+.chat-container {
+    width: 100%;
+    max-width: 450px;  /* Limite máximo de largura */
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
     padding: 20px;
-    text-align: center;
-}
-
-.chat-header h1 {
-    margin: 0;
-    font-size: 24px;
-    color: #ffffff;
-}
-
-.chat-header p {
-    margin: 5px 0 0;
-    font-size: 14px;
-    color: #d4faff;
-}
-
-.chat-box {
-    height: 400px;
-    background-color: #1b262c;
-    overflow-y: auto;
-    padding: 15px;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
     display: flex;
     flex-direction: column;
+    height: 90vh;
+    max-height: 600px; /* Limita a altura */
+}
+
+/* Título do chatbot */
+h1 {
+    text-align: center;
+    color: #00ffe1;
+    margin-bottom: 20px;
+}
+
+/* Caixa de chat com rolagem */
+.chat-box {
+    flex: 1;  /* Preenche o espaço restante */
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    scrollbar-color: #00ffe1 transparent;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Caixa de input e botão */
+.input-box {
+    display: flex;
     gap: 10px;
 }
 
-.message {
-    max-width: 80%;
-    padding: 12px 15px;
-    border-radius: 20px;
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-.message.user {
-    background: #00f5d4;
-    color: #003840;
-    align-self: flex-end;
-    text-align: right;
-}
-
-.message.bot {
-    background: #3282b8;
-    color: #ffffff;
-    align-self: flex-start;
-    text-align: left;
-}
-
-.input-area {
-    display: flex;
-    background-color: #112d4e;
-    padding: 10px;
-}
-
-.input-area input {
+/* Estilo do input */
+input[type="text"] {
     flex: 1;
-    padding: 10px;
-    border-radius: 10px;
+    padding: 12px;
     border: none;
-    outline: none;
-    font-size: 14px;
+    border-radius: 8px;
+    margin-right: 10px;
+    font-size: 1rem;
 }
 
-.input-area button {
-    background: linear-gradient(90deg, #00c6ff, #0072ff);
+/* Estilo do botão */
+button {
+    background: #00ffe1;
     border: none;
-    color: white;
-    padding: 10px 15px;
-    margin-left: 10px;
-    border-radius: 10px;
+    border-radius: 8px;
+    padding: 12px;
+    color: #000;
+    font-weight: bold;
     cursor: pointer;
-    font-size: 14px;
     transition: 0.3s;
+    font-size: 1rem;
 }
 
-.input-area button:hover {
-    background: linear-gradient(90deg, #0072ff, #00c6ff);
+button:hover {
+    background: #00ccbb;
+}
+
+/* Estilo para mensagens enviadas */
+.chat-box div {
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+/* Media Queries para responsividade */
+
+@media (max-width: 768px) {
+    .chat-container {
+        padding: 15px;
+    }
+
+    input[type="text"], button {
+        font-size: 0.9rem; /* Tamanho de fonte menor em dispositivos menores */
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.5rem; /* Tamanho do título ajustado */
+    }
+}
+
+@media (max-width: 480px) {
+    .chat-container {
+        width: 100%;
+        height: auto; /* Altura auto em telas muito pequenas */
+        max-height: none;
+    }
+
+    .chat-box {
+        margin-bottom: 15px;
+    }
+
+    input[type="text"], button {
+        font-size: 0.85rem; /* Reduz o tamanho da fonte ainda mais */
+        padding: 8px;
+    }
+
+    h1 {
+        font-size: 1.3rem;
+    }
 }
