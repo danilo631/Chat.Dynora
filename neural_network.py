@@ -10,23 +10,34 @@ from nltk.stem import RSLPStemmer
 from nltk.corpus import wordnet
 import nltk
 
-nltk.download('wordnet')
-nltk.download('omw-1.4')
+# Criação da pasta de dados e download automático para ambiente Render ou local
+nltk_data_dir = os.path.join(os.getcwd(), 'nltk_data')
+os.makedirs(nltk_data_dir, exist_ok=True)
+
+nltk.download('rslp', download_dir=nltk_data_dir)
+nltk.download('wordnet', download_dir=nltk_data_dir)
+nltk.download('omw-1.4', download_dir=nltk_data_dir)
+
+nltk.data.path.append(nltk_data_dir)
 
 class AdvancedChatbot:
     def __init__(self):
+        print("Iniciando DYNORA AI...")
         self.database = self.load_database()
         self.stemmer = RSLPStemmer()
         self.vectorizer = TfidfVectorizer()
-        self.tfidf_matrix = self._build_knowledge_base()
-        self.learning_rate = 0.1
+        self.learning_rate = 0.05
+        self.bias = 0.1
         self.weights = np.random.rand(len(self._get_all_questions()))
-        print("✅ DYNORA iniciada com sucesso!")
+        self.tfidf_matrix = self._build_knowledge_base()
+        print("✅ IA carregada e pronta!")
 
     def load_database(self):
         if not os.path.exists('knowledge_base.json'):
+            print("Nenhum banco de dados encontrado. Criando um novo...")
             return {"categories": {}, "interaction_history": []}
         with open('knowledge_base.json', 'r', encoding='utf-8') as f:
+            print("Base de conhecimento carregada com sucesso.")
             return json.load(f)
 
     def _preprocess(self, text):
@@ -67,17 +78,17 @@ class AdvancedChatbot:
         best_match_idx = similarities.argmax()
         confidence = similarities[best_match_idx]
 
-        print(f"[DYNORA] Confiança: {confidence:.2f}")
+        print(f"[DYNORA] Confiança na resposta: {confidence:.2f}")
 
         if confidence > 0.7:
             self._update_weights(best_match_idx, confidence)
             resposta = self._get_answer(best_match_idx)
             self._save_interaction(input_text, resposta, confidence)
             return resposta
-
-        generated_response = self._generate_new_answer(input_text)
-        self._save_interaction(input_text, generated_response, confidence=0)
-        return generated_response
+        else:
+            resposta_gerada = self._generate_new_answer(input_text)
+            self._save_interaction(input_text, resposta_gerada, confidence=0)
+            return resposta_gerada
 
     def _get_answer(self, idx):
         perguntas = self._get_all_questions()
@@ -92,24 +103,34 @@ class AdvancedChatbot:
     def _update_weights(self, idx, confidence):
         adjustment = self.learning_rate * (1 - confidence)
         self.weights[idx] += adjustment
+        print(f"[DYNORA] Peso ajustado em {idx}: {self.weights[idx]:.4f}")
+        self.bias += self.learning_rate * (confidence - 0.5)
 
     def _generate_new_answer(self, input_text):
         context = self._find_best_context(input_text)
         related_answers = self._get_related_answers(context)
 
         if related_answers:
-            return self._synthesize_answer(input_text, related_answers, context)
+            resumo = self._synthesize_answer(related_answers, context)
+            return resumo
 
         return self._fallback_response(input_text)
 
-    def _synthesize_answer(self, input_text, related_answers, context):
+    def _synthesize_answer(self, related_answers, context):
+        texto_completo = ' '.join(set(related_answers))
+        resumo = self._resumir_texto(texto_completo)
+
         response_template = random.choice([
-            f"Com base no contexto '{context}':",
-            "Relatando informações similares:",
-            "Considerando o que sei:"
+            f"Baseado no contexto '{context}', aqui está um resumo:",
+            f"Considerei informações sobre '{context}':",
+            "De acordo com o que encontrei:"
         ])
-        best_answer = max(related_answers, key=lambda x: len(x))
-        return f"{response_template} {best_answer} (pergunta: {input_text})"
+        return f"{response_template} {resumo}"
+
+    def _resumir_texto(self, texto):
+        sentencas = list(set(re.split(r'[.!?]', texto)))
+        resumo = '. '.join([s.strip() for s in sentencas if len(s.strip()) > 0][:3])
+        return resumo + '.'
 
     def _save_interaction(self, pergunta, resposta, confidence):
         new_entry = {
@@ -162,9 +183,16 @@ class AdvancedChatbot:
         return related_answers
 
     def _fallback_response(self, input_text):
-        fallback_list = [
-            "Desculpe, não entendi sua pergunta. Pode reformular?",
-            "Ainda estou aprendendo sobre isso, poderia dar mais detalhes?",
-            "Não tenho certeza sobre isso, mas posso tentar pesquisar!"
+        fallback_respostas = [
+            "Desculpe, ainda estou aprendendo sobre isso. Pode reformular?",
+            "Ótima pergunta! Vou estudar para te dar uma resposta melhor depois.",
+            "Não entendi completamente. Pode explicar de outro jeito?"
         ]
-        return random.choice(fallback_list)
+        return random.choice(fallback_respostas)
+
+    def train_on_feedback(self, pergunta, resposta, positivo=True):
+        if positivo:
+            self._add_to_database(pergunta, resposta)
+            print(f"[DYNORA TREINO] Aprendi com a pergunta: {pergunta}")
+        else:
+            print(f"[DYNORA TREINO] Feedback negativo recebido. Nenhuma alteração feita.")
