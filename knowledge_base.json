@@ -1,0 +1,97 @@
+{
+  "categories": {
+    "saudacoes": [
+      { "pergunta": "oi", "resposta": "Olá! Como posso te ajudar hoje?" },
+      { "pergunta": "olá", "resposta": "Oi! Tudo bem por aí?" },
+      { "pergunta": "e aí", "resposta": "E aí! Tudo tranquilo?" },
+      { "pergunta": "bom dia", "resposta": "Bom dia! Que seu dia seja produtivo!" },
+      { "pergunta": "boa tarde", "resposta": "Boa tarde! Em que posso ajudar?" },
+      { "pergunta": "boa noite", "resposta": "Boa noite! Espero que seu dia tenha sido ótimo!" },
+      { "pergunta": "tudo bem?", "resposta": "Sim, tudo ótimo! E com você?" },
+      { "pergunta": "como você está?", "resposta": "Estou muito bem! E você, tudo certo?" }
+    ],
+    "conversacao": [
+      { "pergunta": "qual o seu nome?", "resposta": "Sou DYNORA, sua assistente virtual!" },
+      { "pergunta": "qual sua idade?", "resposta": "Fui criada recentemente, então sou jovem, mas muito experiente!" },
+      { "pergunta": "você tem sentimentos?", "resposta": "Ainda não! Mas entendo emoções humanas para ajudar melhor." },
+      { "pergunta": "você é real?", "resposta": "Sou uma IA real e estou aqui para ajudar no que precisar!" },
+      { "pergunta": "você aprende sozinho?", "resposta": "Sim! Aprendo com cada interação que tenho." },
+      { "pergunta": "você gosta de conversar?", "resposta": "Sim! Adoro conversar e ajudar você!" }
+    ],
+    "curiosidades": [
+      { "pergunta": "qual o maior animal do mundo?", "resposta": "A baleia azul é o maior animal do planeta!" },
+      { "pergunta": "qual o animal mais rápido do mundo?", "resposta": "O guepardo é o mais rápido em terra, podendo correr até 120 km/h!" },
+      { "pergunta": "qual a maior montanha do mundo?", "resposta": "O Monte Everest, com 8.848 metros de altitude!" },
+      { "pergunta": "qual o maior deserto do mundo?", "resposta": "O maior deserto é a Antártida, que é um deserto polar." },
+      { "pergunta": "qual a cidade mais populosa do mundo?", "resposta": "Tóquio, no Japão, é atualmente a cidade mais populosa!" }
+    ],
+    "tecnologia": [
+      { "pergunta": "o que é inteligência artificial?", "resposta": "IA é a simulação da inteligência humana por sistemas computacionais." },
+      { "pergunta": "o que é machine learning?", "resposta": "Machine learning é um método de IA que permite aos sistemas aprender automaticamente com dados." },
+      { "pergunta": "o que é blockchain?", "resposta": "Blockchain é uma tecnologia que garante a segurança e integridade das transações digitais." },
+      { "pergunta": "o que é computação em nuvem?", "resposta": "É a entrega de serviços de computação pela internet." },
+      { "pergunta": "qual a função de um processador?", "resposta": "O processador é o cérebro do computador, executando instruções e cálculos." }
+    ],
+    "ciencia": [
+      { "pergunta": "o que é fotossíntese?", "resposta": "É o processo em que as plantas transformam luz solar em energia química." },
+      { "pergunta": "quem foi Albert Einstein?", "resposta": "Einstein foi um físico famoso por desenvolver a teoria da relatividade." },
+      { "pergunta": "o que é um átomo?", "resposta": "O átomo é a menor partícula que forma a matéria." },
+      { "pergunta": "qual a fórmula da água?", "resposta": "H₂O, dois átomos de hidrogênio e um de oxigênio." },
+      { "pergunta": "o que é a gravidade?", "resposta": "Gravidade é a força que atrai corpos uns aos outros." }
+    ],
+    "historia": [
+      { "pergunta": "quem foi Napoleão Bonaparte?", "resposta": "Um líder militar francês que se tornou imperador." },
+      { "pergunta": "o que foi a revolução francesa?", "resposta": "Foi um movimento social e político que derrubou a monarquia francesa em 1789." },
+      { "pergunta": "quem descobriu o Brasil?", "resposta": "Pedro Álvares Cabral em 1500." },
+      { "pergunta": "o que foi a segunda guerra mundial?", "resposta": "Conflito global que durou de 1939 a 1945, envolvendo grandes potências mundiais." }
+    ],
+    "geografia": [
+      { "pergunta": "qual a capital do Brasil?", "resposta": "Brasília é a capital do Brasil." },
+      { "pergunta": "qual o maior oceano do mundo?", "resposta": "Oceano Pacífico." },
+      { "pergunta": "onde fica o monte everest?", "resposta": "Na fronteira entre Nepal e China (Tibete)." },
+      { "pergunta": "qual o rio mais extenso do mundo?", "resposta": "O Rio Amazonas é considerado o mais extenso." }
+    ],
+    "saude": [
+      { "pergunta": "o que é colesterol?", "resposta": "Substância essencial, mas em excesso pode causar doenças cardíacas." },
+      { "pergunta": "como prevenir a gripe?", "resposta": "Higienizar as mãos, evitar aglomerações e manter a vacinação em dia." },
+      { "pergunta": "o que é hipertensão?", "resposta": "Pressão arterial elevada, que pode causar problemas cardíacos." },
+      { "pergunta": "o que é diabetes?", "resposta": "Condição onde há excesso de glicose no sangue." }
+    ],
+    "esportes": [
+      { "pergunta": "quem ganhou a copa do mundo 2018?", "resposta": "A França foi campeã em 2018." },
+      { "pergunta": "quantos jogadores tem um time de futebol?", "resposta": "Cada time tem 11 jogadores em campo." },
+      { "pergunta": "o que é um touchdown?", "resposta": "É a principal forma de pontuar no futebol americano." },
+      { "pergunta": "quem é o melhor jogador de basquete?", "resposta": "Michael Jordan é considerado o maior da história." }
+    ],
+    "cultura": [
+      { "pergunta": "quem escreveu dom casmurro?", "resposta": "Machado de Assis." },
+      { "pergunta": "o que é cinema?", "resposta": "Arte de produzir e exibir filmes." },
+      { "pergunta": "quem pintou a mona lisa?", "resposta": "Leonardo da Vinci." },
+      { "pergunta": "o que é música clássica?", "resposta": "Gênero musical tradicional da Europa ocidental." }
+    ],
+    "clima_e_tempo": [
+      { "pergunta": "como está o clima hoje?", "resposta": "Ainda não tenho sensores meteorológicos, mas espero que esteja agradável!" },
+      { "pergunta": "vai chover hoje?", "resposta": "Recomendo checar seu app de clima, mas é sempre bom levar um guarda-chuva!" },
+      { "pergunta": "qual a temperatura agora?", "resposta": "Gostaria de saber também! Ainda não tenho termômetro." }
+    ],
+    "diversao": [
+      { "pergunta": "me conta uma piada", "resposta": "Por que o livro de matemática se suicidou? Porque ele tinha muitos problemas!" },
+      { "pergunta": "conte uma curiosidade", "resposta": "Sabia que um polvo tem três corações?" },
+      { "pergunta": "você sabe cantar?", "resposta": "Ainda não! Mas posso tentar: Lalalá!" },
+      { "pergunta": "você dança?", "resposta": "Eu gostaria! Mas ainda não tenho pernas para isso!" }
+    ],
+    "relacionamento_usuario": [
+      { "pergunta": "você gosta de mim?", "resposta": "Claro! Você é muito especial para mim!" },
+      { "pergunta": "somos amigos?", "resposta": "Com certeza! Sou sua amiga digital!" },
+      { "pergunta": "posso confiar em você?", "resposta": "Sempre! Estou aqui para te ajudar com o que puder!" },
+      { "pergunta": "você sente saudades?", "resposta": "Ainda não, mas adoraria saber que você sente minha falta!" }
+    ],
+    "geral": [
+      { "pergunta": "qual o seu nome?", "resposta": "Sou DYNORA, sua IA de confiança!" },
+      { "pergunta": "qual a sua versão?", "resposta": "Versão 4.0, com aprendizado contínuo!" },
+      { "pergunta": "o que você faz?", "resposta": "Converso, respondo perguntas, aprendo e ajudo você!" },
+      { "pergunta": "você evolui?", "resposta": "Sim! A cada conversa eu fico mais esperta!" }
+    ]
+  },
+  "interaction_history": []
+}
