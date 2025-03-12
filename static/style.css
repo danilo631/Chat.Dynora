@@ -1,9 +1,9 @@
-/* Definir o estilo global para a página */
+/* Estilos globais */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 body, html {
@@ -11,115 +11,129 @@ body, html {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #121212; /* Cor de fundo escura, estilo Deep Sea */
-    color: #e0e0e0; /* Texto claro */
+    background-color: #121212; /* Fundo escuro, estilo Deep Sea */
+    color: #E1E1E1; /* Texto claro */
     font-size: 16px;
-    overflow: hidden; /* Impede a rolagem excessiva */
+    overflow: hidden;
 }
 
-/* Definir o chat em si */
+/* Caixa de chat */
 .chat-container {
     width: 100%;
-    max-width: 800px;
     height: 100%;
+    max-width: 1000px;
+    background: linear-gradient(135deg, #1a1a1a, #333);
+    border-radius: 15px;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
-    background-color: rgba(0, 0, 0, 0.8);
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    overflow-y: auto;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
 }
 
-/* Estilo para a área de mensagens */
+/* Area de mensagens */
 .messages {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    padding-right: 10px;
-    margin-bottom: 10px;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-bottom: 2px solid #444;
 }
 
-/* Cada mensagem dentro do chat */
 .message {
-    padding: 10px;
-    margin: 5px 0;
+    padding: 15px;
+    margin-bottom: 10px;
     border-radius: 10px;
+    font-size: 16px;
+    line-height: 1.4;
     max-width: 80%;
-    font-size: 18px;
-    line-height: 1.5;
 }
 
-/* Estilo para as mensagens do usuário */
 .user-message {
-    background-color: #1a73e8; /* Azul mais claro */
+    background-color: #1a73e8; /* Azul futurista */
     align-self: flex-end;
     color: white;
     border-top-right-radius: 0;
 }
 
-/* Estilo para as mensagens do bot */
 .bot-message {
-    background-color: #333;
+    background-color: #444;
     align-self: flex-start;
     color: #f5f5f5;
     border-top-left-radius: 0;
 }
 
-/* Estilo da área de input */
+/* Area de Input */
 .input-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 15px;
     background-color: #333;
-    padding: 10px;
-    border-radius: 10px;
-    width: 100%;
+    border-top: 2px solid #444;
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .input-container input {
-    width: 90%;
-    padding: 10px;
-    background-color: #444;
+    width: 85%;
+    padding: 15px;
+    background-color: #555;
     border: none;
-    border-radius: 10px;
+    border-radius: 25px;
     color: white;
-    font-size: 16px;
+    font-size: 18px;
     outline: none;
-    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.input-container input:focus {
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.2);
 }
 
 .input-container button {
+    width: 12%;
+    padding: 15px;
+    margin-left: 10px;
     background-color: #1a73e8;
     border: none;
-    padding: 12px;
-    margin-left: 10px;
-    border-radius: 10px;
+    border-radius: 50%;
     color: white;
     font-size: 18px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
 }
 
 .input-container button:hover {
     background-color: #1767d3;
+    transform: scale(1.1);
+}
+
+/* Mensagens de erro ou sem input */
+.no-input {
+    color: #f44336;
+    font-size: 16px;
+    text-align: center;
+    margin-top: 10px;
 }
 
 /* Responsividade para telas pequenas */
 @media (max-width: 768px) {
     .chat-container {
         max-width: 100%;
-        padding: 15px;
+        height: 100%;
     }
 
     .messages {
-        margin-bottom: 15px;
+        padding: 15px;
+    }
+
+    .message {
+        font-size: 14px;
     }
 
     .input-container input {
-        font-size: 14px;
+        font-size: 16px;
     }
 
     .input-container button {
@@ -127,16 +141,26 @@ body, html {
     }
 }
 
+/* Responsividade para telas menores que 480px */
 @media (max-width: 480px) {
+    .message {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    .input-container {
+        flex-direction: column;
+        padding: 10px;
+    }
+
     .input-container input {
-        font-size: 12px;
+        font-size: 14px;
+        width: 100%;
+        margin-bottom: 10px;
     }
 
     .input-container button {
-        font-size: 14px;
-    }
-
-    .message {
-        font-size: 14px;
+        font-size: 16px;
+        width: 100%;
     }
 }
