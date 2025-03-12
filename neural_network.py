@@ -13,6 +13,7 @@ import wikipedia
 import wikipedia.exceptions
 import requests
 from bs4 import BeautifulSoup
+from googletrans import Translator
 
 # Preparação de dados para o ambiente NLTK
 nltk_data_dir = os.path.join(os.getcwd(), 'nltk_data')
@@ -27,16 +28,20 @@ nltk.data.path.append(nltk_data_dir)
 # Configuração da Wikipedia em português
 wikipedia.set_lang('pt')
 
+# Tradutor
+translator = Translator()
+
 class AdvancedChatbot:
     def __init__(self):
         print("Iniciando DYNORA AI com recursos avançados...")
         self.database = self.load_database()
         self.stemmer = RSLPStemmer()
         self.vectorizer = TfidfVectorizer()
-        self.learning_rate = 0.05
+        self.learning_rate = 0.01
         self.bias = 0.1
         self.weights = np.random.rand(max(1, len(self._get_all_questions())))
         self.tfidf_matrix = self._build_knowledge_base()
+        self.cache = {}
         print("✅ DYNORA AI pronta para interação!")
 
     def load_database(self):
@@ -80,6 +85,9 @@ class AdvancedChatbot:
         return questions
 
     def predict(self, input_text):
+        # Verifica se a pergunta está em outro idioma e traduz
+        input_text = self._translate_input(input_text)
+
         soma_resultado = self._verificar_soma(input_text)
         if soma_resultado is not None:
             return soma_resultado
@@ -113,9 +121,28 @@ class AdvancedChatbot:
                 self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="DuckDuckGo")
                 return resposta_resumida
 
+            resposta_google = self.buscar_google(input_text)
+            if resposta_google:
+                print("[DYNORA] Resposta fornecida pelo Google.")
+                resposta_resumida = self._resumir_texto(resposta_google)
+                self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="Google")
+                return resposta_resumida
+
             resposta_gerada = self._generate_new_answer(input_text)
             self._save_interaction(input_text, resposta_gerada, confidence=0)
             return resposta_gerada
+
+    def _translate_input(self, text):
+        try:
+            detected_lang = translator.detect(text).lang
+            if detected_lang != 'pt':
+                translated = translator.translate(text, dest='pt').text
+                print(f"[DYNORA] Traduzindo de {detected_lang} para português: {translated}")
+                return translated
+            return text
+        except Exception as ex:
+            print(f"[DYNORA] Erro ao traduzir: {ex}")
+            return text
 
     def _verificar_soma(self, texto):
         numeros = re.findall(r'\d+', texto)
@@ -161,6 +188,22 @@ class AdvancedChatbot:
             return None
         except Exception as ex:
             print(f"[DYNORA DUCKDUCKGO] Erro inesperado: {ex}")
+            return None
+
+    def buscar_google(self, consulta):
+        try:
+            print(f"[DYNORA GOOGLE] Buscando: {consulta}")
+            url = f"https://www.google.com/search?q={consulta}"
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
+            response = requests.get(url, headers=headers)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            results = soup.find_all('div', class_='BNeawe s3v9rd AP7Wnd')
+            if results:
+                return ' '.join([result.get_text() for result in results[:3]])
+            return None
+        except Exception as ex:
+            print(f"[DYNORA GOOGLE] Erro inesperado: {ex}")
             return None
 
     def _get_answer(self, idx):
@@ -220,7 +263,7 @@ class AdvancedChatbot:
             "source": fonte
         }
 
-        if confidence >= 0.7 or fonte == "Wikipedia" or fonte == "DuckDuckGo":
+        if confidence >= 0.7 or fonte in ["Wikipedia", "DuckDuckGo", "Google"]:
             self._add_to_database(pergunta, resposta)
 
         self.database["interaction_history"].append(new_entry)
