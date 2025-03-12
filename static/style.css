@@ -3,163 +3,185 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Poppins', sans-serif;
 }
 
-body, html {
-    height: 100%;
+body {
+    background: radial-gradient(circle, #0f2027, #203a43, #2c5364); /* Fundo futurista */
+    color: #ffffff;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #121212; /* Fundo escuro, estilo Deep Sea */
-    color: #E1E1E1; /* Texto claro */
     font-size: 16px;
-    overflow: hidden;
 }
 
-/* Caixa de chat */
-.chat-container {
+/* Container principal */
+.container {
     width: 100%;
+    max-width: 600px; /* Largura ótima para dispositivos grandes */
     height: 100%;
-    max-width: 1000px;
-    background: linear-gradient(135deg, #1a1a1a, #333);
+}
+
+/* Interface de chat */
+.chat-interface {
+    background: rgba(15, 32, 39, 0.85);
     border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); /* Efeito de brilho */
     display: flex;
     flex-direction: column;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    height: 100%;
     overflow: hidden;
 }
 
-/* Area de mensagens */
-.messages {
+/* Cabeçalho do chat */
+.chat-header {
+    background: linear-gradient(90deg, #00c6ff, #0072ff); /* Gradiente futurista */
+    padding: 20px;
+    text-align: center;
+}
+
+.chat-header h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #ffffff;
+}
+
+.chat-header p {
+    margin: 5px 0 0;
+    font-size: 14px;
+    color: #d4faff;
+}
+
+/* Caixa de mensagens */
+.chat-box {
     flex: 1;
+    background-color: #1b262c;
+    overflow-y: auto;
+    padding: 15px;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
-    padding: 20px;
-    background-color: rgba(0, 0, 0, 0.7);
-    border-bottom: 2px solid #444;
+    gap: 10px;
 }
 
+/* Estilos das mensagens */
 .message {
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 10px;
-    font-size: 16px;
-    line-height: 1.4;
     max-width: 80%;
+    padding: 12px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
-.user-message {
-    background-color: #1a73e8; /* Azul futurista */
+.message.user {
+    background: #00f5d4; /* Azul claro para usuário */
+    color: #003840;
     align-self: flex-end;
-    color: white;
-    border-top-right-radius: 0;
+    text-align: right;
 }
 
-.bot-message {
-    background-color: #444;
+.message.bot {
+    background: #3282b8; /* Azul para o bot */
+    color: #ffffff;
     align-self: flex-start;
-    color: #f5f5f5;
-    border-top-left-radius: 0;
+    text-align: left;
 }
 
-/* Area de Input */
-.input-container {
+/* Área de entrada de texto */
+.input-area {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background-color: #333;
-    border-top: 2px solid #444;
-    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
+    background-color: #112d4e; /* Cor do fundo da área de input */
+    padding: 10px;
 }
 
-.input-container input {
-    width: 85%;
-    padding: 15px;
-    background-color: #555;
+.input-area input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
     border: none;
-    border-radius: 25px;
-    color: white;
-    font-size: 18px;
     outline: none;
-    box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.1);
-}
-
-.input-container input:focus {
-    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.2);
-}
-
-.input-container button {
-    width: 12%;
-    padding: 15px;
-    margin-left: 10px;
-    background-color: #1a73e8;
-    border: none;
-    border-radius: 50%;
+    font-size: 14px;
+    background: #1f3b47; /* Fundo mais escuro para input */
     color: white;
-    font-size: 18px;
+}
+
+.input-area button {
+    background: linear-gradient(90deg, #00c6ff, #0072ff);
+    border: none;
+    color: white;
+    padding: 10px 15px;
+    margin-left: 10px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    font-size: 14px;
+    transition: 0.3s;
 }
 
-.input-container button:hover {
-    background-color: #1767d3;
-    transform: scale(1.1);
+.input-area button:hover {
+    background: linear-gradient(90deg, #0072ff, #00c6ff); /* Efeito hover no botão */
 }
 
-/* Mensagens de erro ou sem input */
-.no-input {
-    color: #f44336;
-    font-size: 16px;
-    text-align: center;
-    margin-top: 10px;
-}
-
-/* Responsividade para telas pequenas */
+/* Responsividade: telas pequenas */
 @media (max-width: 768px) {
-    .chat-container {
+    .container {
         max-width: 100%;
+        padding: 10px;
+    }
+
+    .chat-interface {
         height: 100%;
     }
 
-    .messages {
-        padding: 15px;
+    .chat-box {
+        padding: 10px;
     }
 
     .message {
-        font-size: 14px;
-    }
-
-    .input-container input {
         font-size: 16px;
+        padding: 10px;
     }
 
-    .input-container button {
+    .input-area {
+        padding: 8px;
+    }
+
+    .input-area input {
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    .input-area button {
         font-size: 16px;
     }
 }
 
-/* Responsividade para telas menores que 480px */
+/* Responsividade para telas menores que 480px (dispositivos móveis) */
 @media (max-width: 480px) {
+    .chat-interface {
+        border-radius: 10px; /* Reduzir bordas para dispositivos pequenos */
+    }
+
+    .chat-box {
+        padding: 8px;
+    }
+
     .message {
         font-size: 14px;
-        padding: 10px;
+        padding: 8px;
     }
 
-    .input-container {
+    .input-area {
         flex-direction: column;
-        padding: 10px;
+        padding: 5px;
     }
 
-    .input-container input {
+    .input-area input {
         font-size: 14px;
-        width: 100%;
+        padding: 10px;
         margin-bottom: 10px;
     }
 
-    .input-container button {
+    .input-area button {
         font-size: 16px;
         width: 100%;
     }
