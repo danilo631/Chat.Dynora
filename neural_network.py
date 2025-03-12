@@ -14,6 +14,13 @@ import wikipedia.exceptions
 import requests
 from bs4 import BeautifulSoup
 from googletrans import Translator
+from sympy import sympify, SympifyError
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
+from transformers import BertTokenizer, BertModel
+from threading import Thread
 
 # Preparação de dados para o ambiente NLTK
 nltk_data_dir = os.path.join(os.getcwd(), 'nltk_data')
@@ -31,6 +38,29 @@ wikipedia.set_lang('pt')
 # Tradutor
 translator = Translator()
 
+# Rede Neural com PyTorch
+class NeuralNet(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(NeuralNet, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.dropout = nn.Dropout(0.5)
+        self.fc2 = nn.Linear(hidden_size, hidden_size)
+        self.bn = nn.BatchNorm1d(hidden_size)
+        self.fc3 = nn.Linear(hidden_size, output_size)
+        self.softmax = nn.Softmax(dim=1)
+
+    def forward(self, x):
+        out = self.fc1(x)
+        out = self.relu(out)
+        out = self.dropout(out)
+        out = self.fc2(out)
+        out = self.bn(out)
+        out = self.relu(out)
+        out = self.fc3(out)
+        out = self.softmax(out)
+        return out
+
 class AdvancedChatbot:
     def __init__(self):
         print("Iniciando DYNORA AI com recursos avançados...")
@@ -42,6 +72,11 @@ class AdvancedChatbot:
         self.weights = np.random.rand(max(1, len(self._get_all_questions())))
         self.tfidf_matrix = self._build_knowledge_base()
         self.cache = {}
+        self.tokenizer = BertTokenizer.from_pretrained('neuralmind/bert-base-portuguese-cased')
+        self.bert_model = BertModel.from_pretrained('neuralmind/bert-base-portuguese-cased')
+        self.neural_net = NeuralNet(input_size=768, hidden_size=512, output_size=5)  # 5 classes de intenções
+        self.optimizer = optim.AdamW(self.neural_net.parameters(), lr=0.001)
+        self.criterion = nn.CrossEntropyLoss()
         print("✅ DYNORA AI pronta para interação!")
 
     def load_database(self):
@@ -63,11 +98,14 @@ class AdvancedChatbot:
         return ' '.join([self.stemmer.stem(word) for word in expanded_words])
 
     def get_synonyms(self, word):
+        if word in self.cache:
+            return self.cache[word]
         synonyms = set()
         for syn in wordnet.synsets(word, lang='por'):
             for lemma in syn.lemmas('por'):
                 synonyms.add(lemma.name().replace('_', ' '))
-        return list(synonyms)
+        self.cache[word] = list(synonyms)
+        return self.cache[word]
 
     def _build_knowledge_base(self):
         all_questions = self._get_all_questions(preprocessed=True)
@@ -88,145 +126,121 @@ class AdvancedChatbot:
         # Verifica se a pergunta está em outro idioma e traduz
         input_text = self._translate_input(input_text)
 
-        soma_resultado = self._verificar_soma(input_text)
-        if soma_resultado is not None:
-            return soma_resultado
+        # Verifica se é uma operação matemática
+        math_result = self._verificar_operacao_matematica(input_text)
+        if math_result is not None:
+            return math_result
 
-        processed_input = self._preprocess(input_text)
-        input_vec = self.vectorizer.transform([processed_input])
-        similarities = cosine_similarity(input_vec, self.tfidf_matrix).flatten()
+        # Classifica a intenção da pergunta
+        intent = self._classificar_intencao(input_text)
+        print(f"[DYNORA] Intenção detectada: {intent}")
 
-        best_match_idx = similarities.argmax()
-        confidence = similarities[best_match_idx] if similarities.size > 0 else 0
-
-        print(f"[DYNORA] Confiança na resposta: {confidence:.2f}")
-
-        if confidence > 0.7:
-            self._update_weights(best_match_idx, confidence)
-            resposta = self._get_answer(best_match_idx)
-            self._save_interaction(input_text, resposta, confidence)
-            return resposta
+        # Processa a pergunta com base na intenção
+        if intent == "pesquisa":
+            return self._processar_pesquisa(input_text)
+        elif intent == "matematica":
+            return self._processar_matematica(input_text)
+        elif intent == "traducao":
+            return self._traduzir_texto(input_text)
+        elif intent == "resumo":
+            return self._resumir_texto_longo(input_text)
+        elif intent == "codigo":
+            return self._gerar_codigo(input_text)
         else:
-            resposta_wiki = self.buscar_na_wikipedia_aprimorada(input_text)
-            if resposta_wiki:
-                print("[DYNORA] Resposta fornecida pela Wikipedia.")
-                resposta_resumida = self._resumir_texto(resposta_wiki)
-                self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="Wikipedia")
-                return resposta_resumida
+            return self._fallback_response(input_text)
 
-            resposta_duckduckgo = self.buscar_duckduckgo(input_text)
-            if resposta_duckduckgo:
-                print("[DYNORA] Resposta fornecida pelo DuckDuckGo.")
-                resposta_resumida = self._resumir_texto(resposta_duckduckgo)
-                self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="DuckDuckGo")
-                return resposta_resumida
+    def _classificar_intencao(self, text):
+        inputs = self.tokenizer(text, return_tensors='pt', truncation=True, padding=True)
+        outputs = self.bert_model(**inputs)
+        cls_embedding = outputs.last_hidden_state[:, 0, :]
+        prediction = self.neural_net(cls_embedding)
+        intent_idx = torch.argmax(prediction, dim=1).item()
+        intents = ["pesquisa", "matematica", "traducao", "resumo", "codigo"]
+        return intents[intent_idx]
 
-            resposta_google = self.buscar_google(input_text)
-            if resposta_google:
-                print("[DYNORA] Resposta fornecida pelo Google.")
-                resposta_resumida = self._resumir_texto(resposta_google)
-                self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="Google")
-                return resposta_resumida
+    def _processar_pesquisa(self, input_text):
+        resposta_wiki = self.buscar_na_wikipedia_aprimorada(input_text)
+        if resposta_wiki:
+            print("[DYNORA] Resposta fornecida pela Wikipedia.")
+            resposta_resumida = self._resumir_texto(resposta_wiki)
+            self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="Wikipedia")
+            return resposta_resumida
 
-            resposta_gerada = self._generate_new_answer(input_text)
-            self._save_interaction(input_text, resposta_gerada, confidence=0)
-            return resposta_gerada
+        resposta_duckduckgo = self.buscar_duckduckgo(input_text)
+        if resposta_duckduckgo:
+            print("[DYNORA] Resposta fornecida pelo DuckDuckGo.")
+            resposta_resumida = self._resumir_texto(resposta_duckduckgo)
+            self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="DuckDuckGo")
+            return resposta_resumida
 
-    def _translate_input(self, text):
+        resposta_google = self.buscar_google(input_text)
+        if resposta_google:
+            print("[DYNORA] Resposta fornecida pelo Google.")
+            resposta_resumida = self._resumir_texto(resposta_google)
+            self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="Google")
+            return resposta_resumida
+
+        resposta_gerada = self._generate_new_answer(input_text)
+        self._save_interaction(input_text, resposta_gerada, confidence=0)
+        return resposta_gerada
+
+    def _processar_matematica(self, input_text):
         try:
-            detected_lang = translator.detect(text).lang
-            if detected_lang != 'pt':
-                translated = translator.translate(text, dest='pt').text
-                print(f"[DYNORA] Traduzindo de {detected_lang} para português: {translated}")
-                return translated
-            return text
+            if any(op in input_text for op in ['+', '-', '*', '/', '^', 'raiz', 'sqrt']):
+                texto = input_text.replace('vezes', '*').replace('x', '*').replace('dividido por', '/').replace('raiz quadrada de', 'sqrt')
+                resultado = sympify(texto)
+                print(f"[DYNORA] Realizando operação: {texto} = {resultado}")
+                return f"O resultado da operação é {resultado}."
+        except SympifyError:
+            pass
+        return "Não consegui resolver a operação matemática."
+
+    def _traduzir_texto(self, texto):
+        try:
+            partes = texto.split("traduzir")
+            if len(partes) > 1:
+                texto_para_traduzir = partes[1].strip()
+                traduzido = translator.translate(texto_para_traduzir, dest='en').text
+                return f"Tradução: {traduzido}"
+            return "Por favor, especifique o texto a ser traduzido."
         except Exception as ex:
             print(f"[DYNORA] Erro ao traduzir: {ex}")
-            return text
+            return "Não consegui traduzir o texto."
 
-    def _verificar_soma(self, texto):
-        numeros = re.findall(r'\d+', texto)
-        if len(numeros) >= 2 and any(op in texto for op in ['+', 'soma', 'somar', 'adicionar', 'adição']):
-            numeros = list(map(int, numeros))
-            resultado = sum(numeros)
-            print(f"[DYNORA] Realizando soma: {numeros} = {resultado}")
-            return f"O resultado da soma é {resultado}."
+    def _resumir_texto_longo(self, texto):
+        try:
+            partes = texto.split("resumir")
+            if len(partes) > 1:
+                texto_para_resumir = partes[1].strip()
+                return self._resumir_texto(texto_para_resumir)
+            return "Por favor, especifique o texto a ser resumido."
+        except Exception as ex:
+            print(f"[DYNORA] Erro ao resumir: {ex}")
+            return "Não consegui resumir o texto."
+
+    def _gerar_codigo(self, texto):
+        try:
+            if "python" in texto.lower():
+                return "Aqui está um exemplo de código Python:\n\n```python\nprint('Olá, mundo!')\n```"
+            elif "javascript" in texto.lower():
+                return "Aqui está um exemplo de código JavaScript:\n\n```javascript\nconsole.log('Olá, mundo!');\n```"
+            elif "html" in texto.lower():
+                return "Aqui está um exemplo de código HTML:\n\n```html\n<h1>Olá, mundo!</h1>\n```"
+            return "Posso gerar códigos em Python, JavaScript e HTML. Peça algo como 'gerar código Python'."
+        except Exception as ex:
+            print(f"[DYNORA] Erro ao gerar código: {ex}")
+            return "Não consegui gerar o código."
+
+    def _verificar_operacao_matematica(self, texto):
+        try:
+            if any(op in texto for op in ['+', '-', '*', '/', '^', 'raiz', 'sqrt']):
+                texto = texto.replace('vezes', '*').replace('x', '*').replace('dividido por', '/').replace('raiz quadrada de', 'sqrt')
+                resultado = sympify(texto)
+                print(f"[DYNORA] Realizando operação: {texto} = {resultado}")
+                return f"O resultado da operação é {resultado}."
+        except SympifyError:
+            pass
         return None
-
-    def buscar_na_wikipedia_aprimorada(self, consulta):
-        try:
-            print(f"[DYNORA WIKI] Buscando: {consulta}")
-            resultado = wikipedia.summary(consulta, sentences=5, auto_suggest=False)
-            return resultado
-        except wikipedia.DisambiguationError as e:
-            print(f"[DYNORA WIKI] Desambiguação, tentando outras opções...")
-            for option in e.options[:3]:
-                try:
-                    resultado = wikipedia.summary(option, sentences=5)
-                    return resultado
-                except:
-                    continue
-            return "Encontrei várias opções na Wikipédia. Pode ser mais específico?"
-        except wikipedia.PageError:
-            print("[DYNORA WIKI] Página não encontrada.")
-            return None
-        except Exception as ex:
-            print(f"[DYNORA WIKI] Erro inesperado: {ex}")
-            return None
-
-    def buscar_duckduckgo(self, consulta):
-        try:
-            print(f"[DYNORA DUCKDUCKGO] Buscando: {consulta}")
-            url = f"https://duckduckgo.com/html/?q={consulta}"
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
-            response = requests.get(url, headers=headers)
-            soup = BeautifulSoup(response.text, 'html.parser')
-            results = soup.find_all('div', class_='result__snippet')
-            if results:
-                return ' '.join([result.get_text() for result in results[:3]])
-            return None
-        except Exception as ex:
-            print(f"[DYNORA DUCKDUCKGO] Erro inesperado: {ex}")
-            return None
-
-    def buscar_google(self, consulta):
-        try:
-            print(f"[DYNORA GOOGLE] Buscando: {consulta}")
-            url = f"https://www.google.com/search?q={consulta}"
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
-            response = requests.get(url, headers=headers)
-            soup = BeautifulSoup(response.text, 'html.parser')
-            results = soup.find_all('div', class_='BNeawe s3v9rd AP7Wnd')
-            if results:
-                return ' '.join([result.get_text() for result in results[:3]])
-            return None
-        except Exception as ex:
-            print(f"[DYNORA GOOGLE] Erro inesperado: {ex}")
-            return None
-
-    def _get_answer(self, idx):
-        perguntas = self._get_all_questions()
-        pergunta = perguntas[idx] if idx < len(perguntas) else None
-
-        for category in self.database['categories'].values():
-            for entry in category:
-                if entry['pergunta'] == pergunta:
-                    return entry['resposta']
-        return "Desculpe, não encontrei uma resposta precisa."
-
-    def _update_weights(self, idx, confidence):
-        adjustment = self.learning_rate * (1 - confidence)
-        if idx >= len(self.weights):
-            self._expand_neurons()
-        self.weights[idx] += adjustment
-        print(f"[DYNORA] Peso ajustado [{idx}]: {self.weights[idx]:.4f}")
-        self.bias += self.learning_rate * (confidence - 0.5)
-
-    def _expand_neurons(self):
-        print("[DYNORA] Expandindo rede de neurônios...")
-        self.weights = np.append(self.weights, np.random.rand())
 
     def _generate_new_answer(self, input_text):
         context = self._find_best_context(input_text)
@@ -321,3 +335,13 @@ class AdvancedChatbot:
             print(f"[DYNORA TREINO] Aprendi com a pergunta: {pergunta}")
         else:
             print(f"[DYNORA TREINO] Feedback negativo recebido. Nenhuma alteração feita.")
+
+# Exemplo de uso
+if __name__ == "__main__":
+    chatbot = AdvancedChatbot()
+    while True:
+        user_input = input("Você: ")
+        if user_input.lower() in ["sair", "exit"]:
+            break
+        response = chatbot.predict(user_input)
+        print(f"DYNORA: {response}")
