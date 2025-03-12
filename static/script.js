@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                throw new Error('Erro ao conectar com o servidor.');
+                throw new Error(`Erro no servidor: ${response.statusText}`);
             }
 
             const data = await response.json();
@@ -46,11 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.status === 'success') {
                 appendMessage('bot', data.response);
             } else {
-                appendMessage('bot', 'Erro: ' + data.error);
+                appendMessage('bot', `Erro: ${data.error || 'Resposta inválida do servidor.'}`);
             }
         } catch (error) {
-            appendMessage('bot', 'Erro ao conectar com o servidor.');
             console.error('Erro:', error);
+            appendMessage('bot', `Erro ao conectar com o servidor: ${error.message}`);
         } finally {
             // Oculta o indicador de carregamento
             loadingIndicator.style.display = 'none';
@@ -64,17 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
     userInput.addEventListener('keypress', e => {
         if (e.key === 'Enter') sendMessage();
     });
-
-    // Função para limpar o chat
-    function clearChat() {
-        chatBox.innerHTML = ''; // Remove todas as mensagens
-    }
-
-    // Botão para limpar o chat (se existir)
-    const clearButton = document.getElementById('clear-button');
-    if (clearButton) {
-        clearButton.addEventListener('click', clearChat);
-    }
 
     // Rola para o final do chat ao carregar a página
     chatBox.scrollTop = chatBox.scrollHeight;
