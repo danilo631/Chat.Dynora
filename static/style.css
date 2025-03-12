@@ -194,3 +194,33 @@ body {
         margin-left: 0;
     }
 }
+
+/* Ajustes para telas grandes (acima de 1200px) */
+@media (min-width: 1200px) {
+    .chat-interface {
+        max-width: 1200px; /* Limita a largura máxima para telas grandes */
+        margin: 0 auto; /* Centraliza o chat na tela */
+    }
+
+    .chat-box {
+        padding: 25px;
+    }
+
+    .message {
+        max-width: 70%; /* Aumenta a largura das mensagens */
+    }
+
+    .input-area {
+        padding: 20px;
+    }
+
+    .input-area input {
+        font-size: 16px;
+        padding: 15px;
+    }
+
+    .input-area button {
+        font-size: 16px;
+        padding: 15px 25px;
+    }
+}
