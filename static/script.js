@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Função para enviar uma mensagem
-    function sendMessage() {
+    async function sendMessage() {
         const message = userInput.value.trim();
 
         if (!message) {
@@ -29,33 +29,32 @@ document.addEventListener('DOMContentLoaded', () => {
         // Exibe o indicador de carregamento
         loadingIndicator.style.display = 'block';
 
-        // Envia a mensagem para o servidor
-        fetch('/get_response', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message })
-        })
-        .then(res => {
-            if (!res.ok) {
+        try {
+            // Envia a mensagem para o servidor
+            const response = await fetch('/get_response', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+
+            if (!response.ok) {
                 throw new Error('Erro ao conectar com o servidor.');
             }
-            return res.json();
-        })
-        .then(data => {
+
+            const data = await response.json();
+
             if (data.status === 'success') {
                 appendMessage('bot', data.response);
             } else {
                 appendMessage('bot', 'Erro: ' + data.error);
             }
-        })
-        .catch(error => {
+        } catch (error) {
             appendMessage('bot', 'Erro ao conectar com o servidor.');
             console.error('Erro:', error);
-        })
-        .finally(() => {
+        } finally {
             // Oculta o indicador de carregamento
             loadingIndicator.style.display = 'none';
-        });
+        }
     }
 
     // Evento de clique no botão de enviar
@@ -77,11 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
         clearButton.addEventListener('click', clearChat);
     }
 
-    // Função para rolar automaticamente para a última mensagem
-    function scrollToBottom() {
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
     // Rola para o final do chat ao carregar a página
-    scrollToBottom();
+    chatBox.scrollTop = chatBox.scrollHeight;
 });
