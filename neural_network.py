@@ -64,14 +64,14 @@ class AdvancedChatbot:
         print("Iniciando DYNORA AI com recursos avançados...")
         self.database = self.load_database()
         self.stemmer = RSLPStemmer()
-        self.vectorizer = TfidfVectorizer()
+        self.vectorizer = TfidfVectorizer(max_features=1000)  # Limita o número de features
         self.learning_rate = 0.01
         self.bias = 0.1
-        self.cache = {}  # Inicializa o cache de sinônimos
+        self.cache = {}  # Cache de sinônimos com limite de tamanho
         self.weights = np.random.rand(max(1, len(self._get_all_questions())))
         self.tfidf_matrix = self._build_knowledge_base()
         self.tokenizer = BertTokenizer.from_pretrained('neuralmind/bert-base-portuguese-cased')
-        self.bert_model = BertModel.from_pretrained('neuralmind/bert-base-portuguese-cased')
+        self.bert_model = None  # Carregar apenas quando necessário
         self.neural_net = NeuralNet(input_size=768, hidden_size=512, output_size=5)  # 5 classes de intenções
         self.optimizer = optim.AdamW(self.neural_net.parameters(), lr=0.001)
         self.criterion = nn.CrossEntropyLoss()
@@ -103,6 +103,8 @@ class AdvancedChatbot:
             for lemma in syn.lemmas('por'):
                 synonyms.add(lemma.name().replace('_', ' '))
         self.cache[word] = list(synonyms)
+        if len(self.cache) > 1000:  # Limita o cache a 1000 entradas
+            self.cache.pop(next(iter(self.cache)))
         return self.cache[word]
 
     def _build_knowledge_base(self):
@@ -148,6 +150,8 @@ class AdvancedChatbot:
             return self._fallback_response(input_text)
 
     def _classificar_intencao(self, text):
+        if self.bert_model is None:
+            self.bert_model = BertModel.from_pretrained('neuralmind/bert-base-portuguese-cased')
         inputs = self.tokenizer(text, return_tensors='pt', truncation=True, padding=True)
         outputs = self.bert_model(**inputs)
         cls_embedding = outputs.last_hidden_state[:, 0, :]
@@ -279,6 +283,8 @@ class AdvancedChatbot:
             self._add_to_database(pergunta, resposta)
 
         self.database["interaction_history"].append(new_entry)
+        if len(self.database["interaction_history"]) > 100:  # Limita o histórico a 100 entradas
+            self.database["interaction_history"].pop(0)
         self._save_database()
         self.tfidf_matrix = self._build_knowledge_base()
 
