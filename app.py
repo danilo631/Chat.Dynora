@@ -17,7 +17,7 @@ nltk.download('omw-1.4', download_dir=nltk_data_dir)
 nltk.data.path.append(nltk_data_dir)
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
-CORS(app)
+CORS(app)  # Permite requisições de qualquer origem
 
 # Inicializa o chatbot
 chatbot = AdvancedChatbot()
@@ -158,5 +158,5 @@ def update_entry():
         return jsonify({'error': str(e), 'status': 'error'}), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    port = int(os.environ.get("PORT", 5000))  # Porta padrão do Render
+    app.run(host='0.0.0.0', port=port)  # Rodar em todos os IPs disponíveis
