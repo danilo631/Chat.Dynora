@@ -11,6 +11,8 @@ from nltk.corpus import wordnet
 import nltk
 import wikipedia
 import wikipedia.exceptions
+import requests
+from bs4 import BeautifulSoup
 
 # Preparação de dados para o ambiente NLTK
 nltk_data_dir = os.path.join(os.getcwd(), 'nltk_data')
@@ -104,6 +106,13 @@ class AdvancedChatbot:
                 self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="Wikipedia")
                 return resposta_resumida
 
+            resposta_duckduckgo = self.buscar_duckduckgo(input_text)
+            if resposta_duckduckgo:
+                print("[DYNORA] Resposta fornecida pelo DuckDuckGo.")
+                resposta_resumida = self._resumir_texto(resposta_duckduckgo)
+                self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="DuckDuckGo")
+                return resposta_resumida
+
             resposta_gerada = self._generate_new_answer(input_text)
             self._save_interaction(input_text, resposta_gerada, confidence=0)
             return resposta_gerada
@@ -136,6 +145,22 @@ class AdvancedChatbot:
             return None
         except Exception as ex:
             print(f"[DYNORA WIKI] Erro inesperado: {ex}")
+            return None
+
+    def buscar_duckduckgo(self, consulta):
+        try:
+            print(f"[DYNORA DUCKDUCKGO] Buscando: {consulta}")
+            url = f"https://duckduckgo.com/html/?q={consulta}"
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
+            response = requests.get(url, headers=headers)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            results = soup.find_all('div', class_='result__snippet')
+            if results:
+                return ' '.join([result.get_text() for result in results[:3]])
+            return None
+        except Exception as ex:
+            print(f"[DYNORA DUCKDUCKGO] Erro inesperado: {ex}")
             return None
 
     def _get_answer(self, idx):
@@ -195,7 +220,7 @@ class AdvancedChatbot:
             "source": fonte
         }
 
-        if confidence >= 0.7 or fonte == "Wikipedia":
+        if confidence >= 0.7 or fonte == "Wikipedia" or fonte == "DuckDuckGo":
             self._add_to_database(pergunta, resposta)
 
         self.database["interaction_history"].append(new_entry)
