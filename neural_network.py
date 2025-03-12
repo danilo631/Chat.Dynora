@@ -18,9 +18,7 @@ from sympy import sympify, SympifyError
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
 from transformers import BertTokenizer, BertModel
-from threading import Thread
 
 # Preparação de dados para o ambiente NLTK
 nltk_data_dir = os.path.join(os.getcwd(), 'nltk_data')
@@ -69,9 +67,9 @@ class AdvancedChatbot:
         self.vectorizer = TfidfVectorizer()
         self.learning_rate = 0.01
         self.bias = 0.1
+        self.cache = {}  # Inicializa o cache de sinônimos
         self.weights = np.random.rand(max(1, len(self._get_all_questions())))
         self.tfidf_matrix = self._build_knowledge_base()
-        self.cache = {}
         self.tokenizer = BertTokenizer.from_pretrained('neuralmind/bert-base-portuguese-cased')
         self.bert_model = BertModel.from_pretrained('neuralmind/bert-base-portuguese-cased')
         self.neural_net = NeuralNet(input_size=768, hidden_size=512, output_size=5)  # 5 classes de intenções
@@ -335,13 +333,3 @@ class AdvancedChatbot:
             print(f"[DYNORA TREINO] Aprendi com a pergunta: {pergunta}")
         else:
             print(f"[DYNORA TREINO] Feedback negativo recebido. Nenhuma alteração feita.")
-
-# Exemplo de uso
-if __name__ == "__main__":
-    chatbot = AdvancedChatbot()
-    while True:
-        user_input = input("Você: ")
-        if user_input.lower() in ["sair", "exit"]:
-            break
-        response = chatbot.predict(user_input)
-        print(f"DYNORA: {response}")
