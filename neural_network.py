@@ -3,7 +3,6 @@ import os
 import numpy as np
 import random
 import re
-import requests
 from datetime import datetime
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -11,8 +10,9 @@ from nltk.stem import RSLPStemmer
 from nltk.corpus import wordnet
 import nltk
 import wikipedia
+import wikipedia.exceptions
 
-# Configuração inicial
+# Preparação de dados para o ambiente NLTK
 nltk_data_dir = os.path.join(os.getcwd(), 'nltk_data')
 os.makedirs(nltk_data_dir, exist_ok=True)
 
@@ -22,35 +22,27 @@ nltk.download('omw-1.4', download_dir=nltk_data_dir)
 
 nltk.data.path.append(nltk_data_dir)
 
-wikipedia.set_lang("pt")
-
+# Configuração da Wikipedia em português
+wikipedia.set_lang('pt')
 
 class AdvancedChatbot:
     def __init__(self):
-        print("Iniciando DYNORA AI 2.0...")
+        print("Iniciando DYNORA AI com recursos avançados...")
         self.database = self.load_database()
         self.stemmer = RSLPStemmer()
         self.vectorizer = TfidfVectorizer()
-        self.learning_rate = 0.01
+        self.learning_rate = 0.05
         self.bias = 0.1
-
-        # Inicializando pesos e camadas ocultas
-        self.hidden_layer_size = 8
-        self.input_size = len(self._get_all_questions())
-        self.output_size = 1
-        self.weights_input_hidden = np.random.rand(self.input_size, self.hidden_layer_size)
-        self.weights_hidden_output = np.random.rand(self.hidden_layer_size, self.output_size)
-
+        self.weights = np.random.rand(max(1, len(self._get_all_questions())))
         self.tfidf_matrix = self._build_knowledge_base()
-
-        print("✅ DYNORA 2.0 pronta para uso!")
+        print("✅ DYNORA AI pronta para interação!")
 
     def load_database(self):
         if not os.path.exists('knowledge_base.json'):
             print("Nenhum banco de dados encontrado. Criando um novo...")
             return {"categories": {}, "interaction_history": []}
         with open('knowledge_base.json', 'r', encoding='utf-8') as f:
-            print("Base de conhecimento carregada.")
+            print("Base de conhecimento carregada com sucesso.")
             return json.load(f)
 
     def _preprocess(self, text):
@@ -72,6 +64,8 @@ class AdvancedChatbot:
 
     def _build_knowledge_base(self):
         all_questions = self._get_all_questions(preprocessed=True)
+        if not all_questions:
+            return self.vectorizer.fit_transform(["vazio"])
         return self.vectorizer.fit_transform(all_questions)
 
     def _get_all_questions(self, preprocessed=False):
@@ -84,96 +78,69 @@ class AdvancedChatbot:
         return questions
 
     def predict(self, input_text):
-        # Verificar operações matemáticas
-        if self._is_math_expression(input_text):
-            resultado = self._evaluate_math_expression(input_text)
-            return f"O resultado da sua conta é: {resultado}"
-
-        # Verificar busca no dicionário
-        if "defina" in input_text or "o que significa" in input_text:
-            termo = self._extrair_termo_definicao(input_text)
-            definicao = self._buscar_definicao_dicionario(termo)
-            if definicao:
-                return f"{termo}: {definicao}"
-
-        # Busca de informações na Wikipédia
-        if "explique" in input_text or "o que é" in input_text:
-            termo = self._extrair_termo_definicao(input_text)
-            resumo_wiki = self._buscar_wikipedia(termo)
-            if resumo_wiki:
-                return resumo_wiki
+        soma_resultado = self._verificar_soma(input_text)
+        if soma_resultado is not None:
+            return soma_resultado
 
         processed_input = self._preprocess(input_text)
         input_vec = self.vectorizer.transform([processed_input])
         similarities = cosine_similarity(input_vec, self.tfidf_matrix).flatten()
 
         best_match_idx = similarities.argmax()
-        confidence = similarities[best_match_idx]
+        confidence = similarities[best_match_idx] if similarities.size > 0 else 0
+
+        print(f"[DYNORA] Confiança na resposta: {confidence:.2f}")
 
         if confidence > 0.7:
-            resposta = self._get_answer(best_match_idx)
             self._update_weights(best_match_idx, confidence)
+            resposta = self._get_answer(best_match_idx)
             self._save_interaction(input_text, resposta, confidence)
             return resposta
         else:
+            resposta_wiki = self.buscar_na_wikipedia_aprimorada(input_text)
+            if resposta_wiki:
+                print("[DYNORA] Resposta fornecida pela Wikipedia.")
+                resposta_resumida = self._resumir_texto(resposta_wiki)
+                self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="Wikipedia")
+                return resposta_resumida
+
             resposta_gerada = self._generate_new_answer(input_text)
             self._save_interaction(input_text, resposta_gerada, confidence=0)
             return resposta_gerada
 
-    # ===== Funções Adicionais =====
+    def _verificar_soma(self, texto):
+        numeros = re.findall(r'\d+', texto)
+        if len(numeros) >= 2 and any(op in texto for op in ['+', 'soma', 'somar', 'adicionar', 'adição']):
+            numeros = list(map(int, numeros))
+            resultado = sum(numeros)
+            print(f"[DYNORA] Realizando soma: {numeros} = {resultado}")
+            return f"O resultado da soma é {resultado}."
+        return None
 
-    def _is_math_expression(self, text):
-        return bool(re.search(r'\d+\s*[\+\-\*\/]\s*\d+', text))
-
-    def _evaluate_math_expression(self, expression):
+    def buscar_na_wikipedia_aprimorada(self, consulta):
         try:
-            # Remove tudo que não for número ou operador
-            expression = re.sub(r'[^\d\+\-\*\/\.\(\)\s]', '', expression)
-            return eval(expression)
-        except Exception:
-            return "Não consegui calcular isso."
-
-    def _extrair_termo_definicao(self, frase):
-        palavras = frase.split()
-        if "defina" in palavras:
-            index = palavras.index("defina") + 1
-        elif "explique" in palavras:
-            index = palavras.index("explique") + 1
-        elif "significa" in palavras:
-            index = palavras.index("significa") + 1
-        else:
-            return frase
-        return ' '.join(palavras[index:])
-
-    def _buscar_definicao_dicionario(self, termo):
-        try:
-            url = f"https://api.dictionaryapi.dev/api/v2/entries/pt/{termo}"
-            response = requests.get(url)
-            if response.status_code == 200:
-                data = response.json()
-                definicao = data[0]['meanings'][0]['definitions'][0]['definition']
-                return definicao
-            else:
-                return "Não encontrei definição no dicionário."
-        except Exception:
-            return "Erro ao buscar definição."
-
-    def _buscar_wikipedia(self, termo):
-        try:
-            summary = wikipedia.summary(termo, sentences=2)
-            return f"De acordo com a Wikipédia: {summary}"
-        except wikipedia.exceptions.DisambiguationError as e:
-            return f"O termo é ambíguo, seja mais específico: {e.options[:5]}"
-        except wikipedia.exceptions.PageError:
-            return "Não encontrei informações na Wikipédia."
-        except Exception:
-            return "Erro na busca da Wikipédia."
-
-    # ===== Aprendizado e Memória =====
+            print(f"[DYNORA WIKI] Buscando: {consulta}")
+            resultado = wikipedia.summary(consulta, sentences=5, auto_suggest=False)
+            return resultado
+        except wikipedia.DisambiguationError as e:
+            print(f"[DYNORA WIKI] Desambiguação, tentando outras opções...")
+            for option in e.options[:3]:
+                try:
+                    resultado = wikipedia.summary(option, sentences=5)
+                    return resultado
+                except:
+                    continue
+            return "Encontrei várias opções na Wikipédia. Pode ser mais específico?"
+        except wikipedia.PageError:
+            print("[DYNORA WIKI] Página não encontrada.")
+            return None
+        except Exception as ex:
+            print(f"[DYNORA WIKI] Erro inesperado: {ex}")
+            return None
 
     def _get_answer(self, idx):
         perguntas = self._get_all_questions()
-        pergunta = perguntas[idx]
+        pergunta = perguntas[idx] if idx < len(perguntas) else None
 
         for category in self.database['categories'].values():
             for entry in category:
@@ -183,9 +150,15 @@ class AdvancedChatbot:
 
     def _update_weights(self, idx, confidence):
         adjustment = self.learning_rate * (1 - confidence)
-        self.weights_input_hidden[idx % self.input_size] += adjustment
-        self.weights_hidden_output += adjustment
+        if idx >= len(self.weights):
+            self._expand_neurons()
+        self.weights[idx] += adjustment
+        print(f"[DYNORA] Peso ajustado [{idx}]: {self.weights[idx]:.4f}")
         self.bias += self.learning_rate * (confidence - 0.5)
+
+    def _expand_neurons(self):
+        print("[DYNORA] Expandindo rede de neurônios...")
+        self.weights = np.append(self.weights, np.random.rand())
 
     def _generate_new_answer(self, input_text):
         context = self._find_best_context(input_text)
@@ -194,6 +167,7 @@ class AdvancedChatbot:
         if related_answers:
             resumo = self._synthesize_answer(related_answers, context)
             return resumo
+
         return self._fallback_response(input_text)
 
     def _synthesize_answer(self, related_answers, context):
@@ -212,16 +186,16 @@ class AdvancedChatbot:
         resumo = '. '.join([s.strip() for s in sentencas if len(s.strip()) > 0][:3])
         return resumo + '.'
 
-    def _save_interaction(self, pergunta, resposta, confidence):
+    def _save_interaction(self, pergunta, resposta, confidence, fonte="generated"):
         new_entry = {
             "pergunta": pergunta,
             "resposta": resposta,
             "timestamp": datetime.now().isoformat(),
             "confidence": confidence,
-            "source": "generated" if confidence < 0.7 else "known"
+            "source": fonte
         }
 
-        if confidence >= 0.7:
+        if confidence >= 0.7 or fonte == "Wikipedia":
             self._add_to_database(pergunta, resposta)
 
         self.database["interaction_history"].append(new_entry)
@@ -239,6 +213,9 @@ class AdvancedChatbot:
             "pergunta": pergunta,
             "resposta": resposta
         })
+
+        # Expandir neurônios quando a base cresce
+        self._expand_neurons()
 
     def _save_database(self):
         with open('knowledge_base.json', 'w', encoding='utf-8') as f:
