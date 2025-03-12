@@ -9,8 +9,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 from nltk.stem import RSLPStemmer
 from nltk.corpus import wordnet
 import nltk
+import wikipedia
+import wikipedia.exceptions
 
-# Criação da pasta de dados e download automático para ambiente Render ou local
+# Preparação de dados para o ambiente NLTK
 nltk_data_dir = os.path.join(os.getcwd(), 'nltk_data')
 os.makedirs(nltk_data_dir, exist_ok=True)
 
@@ -20,9 +22,13 @@ nltk.download('omw-1.4', download_dir=nltk_data_dir)
 
 nltk.data.path.append(nltk_data_dir)
 
+# Configuração da Wikipedia em português
+wikipedia.set_lang('pt')
+
+
 class AdvancedChatbot:
     def __init__(self):
-        print("Iniciando DYNORA AI...")
+        print("Iniciando DYNORA AI com recursos avançados...")
         self.database = self.load_database()
         self.stemmer = RSLPStemmer()
         self.vectorizer = TfidfVectorizer()
@@ -30,7 +36,7 @@ class AdvancedChatbot:
         self.bias = 0.1
         self.weights = np.random.rand(len(self._get_all_questions()))
         self.tfidf_matrix = self._build_knowledge_base()
-        print("✅ IA carregada e pronta!")
+        print("✅ DYNORA AI pronta para interação!")
 
     def load_database(self):
         if not os.path.exists('knowledge_base.json'):
@@ -71,6 +77,11 @@ class AdvancedChatbot:
         return questions
 
     def predict(self, input_text):
+        # Primeiro verifica se é uma soma matemática
+        soma_resultado = self._verificar_soma(input_text)
+        if soma_resultado is not None:
+            return soma_resultado
+
         processed_input = self._preprocess(input_text)
         input_vec = self.vectorizer.transform([processed_input])
         similarities = cosine_similarity(input_vec, self.tfidf_matrix).flatten()
@@ -86,9 +97,50 @@ class AdvancedChatbot:
             self._save_interaction(input_text, resposta, confidence)
             return resposta
         else:
+            # Busca na Wikipédia se a confiança estiver baixa
+            resposta_wiki = self.buscar_na_wikipedia(input_text)
+            if resposta_wiki:
+                print("[DYNORA] Resposta fornecida pela Wikipedia.")
+                self._save_interaction(input_text, resposta_wiki, confidence=0.6)
+                return resposta_wiki
+
+            # Se ainda não encontrou resposta, gera uma nova
             resposta_gerada = self._generate_new_answer(input_text)
             self._save_interaction(input_text, resposta_gerada, confidence=0)
             return resposta_gerada
+
+    def _verificar_soma(self, texto):
+        # Expressão regular para encontrar somas básicas no texto
+        numeros = re.findall(r'\d+', texto)
+        if len(numeros) >= 2 and any(op in texto for op in ['+', 'soma', 'somar', 'adicionar', 'adição']):
+            numeros = list(map(int, numeros))
+            resultado = sum(numeros)
+            print(f"[DYNORA] Realizando soma: {numeros} = {resultado}")
+            return f"O resultado da soma é {resultado}."
+        return None
+
+    def buscar_na_wikipedia(self, consulta):
+        try:
+            print(f"[DYNORA WIKI] Pesquisando na Wikipédia por: {consulta}")
+            resultado = wikipedia.summary(consulta, sentences=3, auto_suggest=True)
+            return resultado
+
+        except wikipedia.DisambiguationError as e:
+            print(f"[DYNORA WIKI] Desambiguação encontrada. Tentando a primeira opção: {e.options[0]}")
+            try:
+                resultado = wikipedia.summary(e.options[0], sentences=3)
+                return resultado
+            except Exception as ex:
+                print(f"[DYNORA WIKI] Erro na desambiguação: {ex}")
+                return "Encontrei vários resultados na Wikipédia. Pode ser mais específico?"
+
+        except wikipedia.PageError:
+            print("[DYNORA WIKI] Página não encontrada.")
+            return "Não encontrei nenhuma informação relevante na Wikipédia."
+
+        except Exception as ex:
+            print(f"[DYNORA WIKI] Erro inesperado: {ex}")
+            return "Houve um erro ao buscar na Wikipédia. Tente novamente depois."
 
     def _get_answer(self, idx):
         perguntas = self._get_all_questions()
@@ -196,3 +248,4 @@ class AdvancedChatbot:
             print(f"[DYNORA TREINO] Aprendi com a pergunta: {pergunta}")
         else:
             print(f"[DYNORA TREINO] Feedback negativo recebido. Nenhuma alteração feita.")
+
