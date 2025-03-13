@@ -23,10 +23,12 @@ from transformers import BertTokenizer, BertModel
 nltk_data_dir = os.path.join(os.getcwd(), 'nltk_data')
 os.makedirs(nltk_data_dir, exist_ok=True)
 
+# Faz o download dos recursos necessários
 nltk.download('rslp', download_dir=nltk_data_dir)
 nltk.download('wordnet', download_dir=nltk_data_dir)
 nltk.download('omw-1.4', download_dir=nltk_data_dir)
 
+# Adiciona o caminho dos dados para o NLTK
 nltk.data.path.append(nltk_data_dir)
 
 # Configuração da Wikipedia em português
@@ -135,30 +137,34 @@ class AdvancedChatbot:
         return questions
 
     def predict(self, input_text):
-        # Verifica se a pergunta está em outro idioma e traduz
-        input_text = self._translate_input(input_text)
+        try:
+            # Verifica se a pergunta está em outro idioma e traduz
+            input_text = self._translate_input(input_text)
 
-        # Verifica se é uma operação matemática
-        math_result = self._verificar_operacao_matematica(input_text)
-        if math_result is not None:
-            return math_result
+            # Verifica se é uma operação matemática
+            math_result = self._verificar_operacao_matematica(input_text)
+            if math_result is not None:
+                return math_result
 
-        # Classifica a intenção da pergunta
-        intent = self._classificar_intencao(input_text)
-        print(f"[DYNORA] Intenção detectada: {intent}")
+            # Classifica a intenção da pergunta
+            intent = self._classificar_intencao(input_text)
+            print(f"[DYNORA] Intenção detectada: {intent}")
 
-        # Processa a pergunta com base na intenção
-        if intent == "pesquisa":
-            return self._processar_pesquisa(input_text)
-        elif intent == "matematica":
-            return self._processar_matematica(input_text)
-        elif intent == "traducao":
-            return self._traduzir_texto(input_text)
-        elif intent == "resumo":
-            return self._resumir_texto_longo(input_text)
-        elif intent == "codigo":
-            return self._gerar_codigo(input_text)
-        else:
+            # Processa a pergunta com base na intenção
+            if intent == "pesquisa":
+                return self._processar_pesquisa(input_text)
+            elif intent == "matematica":
+                return self._processar_matematica(input_text)
+            elif intent == "traducao":
+                return self._traduzir_texto(input_text)
+            elif intent == "resumo":
+                return self._resumir_texto_longo(input_text)
+            elif intent == "codigo":
+                return self._gerar_codigo(input_text)
+            else:
+                return self._fallback_response(input_text)
+        except Exception as e:
+            print(f"[DYNORA] Erro ao processar a pergunta: {e}")
             return self._fallback_response(input_text)
 
     def _classificar_intencao(self, text):
@@ -173,30 +179,34 @@ class AdvancedChatbot:
         return intents[intent_idx]
 
     def _processar_pesquisa(self, input_text):
-        resposta_wiki = self.buscar_na_wikipedia_aprimorada(input_text)
-        if resposta_wiki:
-            print("[DYNORA] Resposta fornecida pela Wikipedia.")
-            resposta_resumida = self._resumir_texto(resposta_wiki)
-            self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="Wikipedia")
-            return resposta_resumida
+        try:
+            resposta_wiki = self.buscar_na_wikipedia_aprimorada(input_text)
+            if resposta_wiki:
+                print("[DYNORA] Resposta fornecida pela Wikipedia.")
+                resposta_resumida = self._resumir_texto(resposta_wiki)
+                self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="Wikipedia")
+                return resposta_resumida
 
-        resposta_duckduckgo = self.buscar_duckduckgo(input_text)
-        if resposta_duckduckgo:
-            print("[DYNORA] Resposta fornecida pelo DuckDuckGo.")
-            resposta_resumida = self._resumir_texto(resposta_duckduckgo)
-            self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="DuckDuckGo")
-            return resposta_resumida
+            resposta_duckduckgo = self.buscar_duckduckgo(input_text)
+            if resposta_duckduckgo:
+                print("[DYNORA] Resposta fornecida pelo DuckDuckGo.")
+                resposta_resumida = self._resumir_texto(resposta_duckduckgo)
+                self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="DuckDuckGo")
+                return resposta_resumida
 
-        resposta_google = self.buscar_google(input_text)
-        if resposta_google:
-            print("[DYNORA] Resposta fornecida pelo Google.")
-            resposta_resumida = self._resumir_texto(resposta_google)
-            self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="Google")
-            return resposta_resumida
+            resposta_google = self.buscar_google(input_text)
+            if resposta_google:
+                print("[DYNORA] Resposta fornecida pelo Google.")
+                resposta_resumida = self._resumir_texto(resposta_google)
+                self._save_interaction(input_text, resposta_resumida, confidence=0.6, fonte="Google")
+                return resposta_resumida
 
-        resposta_gerada = self._generate_new_answer(input_text)
-        self._save_interaction(input_text, resposta_gerada, confidence=0)
-        return resposta_gerada
+            resposta_gerada = self._generate_new_answer(input_text)
+            self._save_interaction(input_text, resposta_gerada, confidence=0)
+            return resposta_gerada
+        except Exception as e:
+            print(f"[DYNORA] Erro ao processar pesquisa: {e}")
+            return self._fallback_response(input_text)
 
     def _processar_matematica(self, input_text):
         try:
