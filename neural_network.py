@@ -10,7 +10,6 @@ from nltk.stem import RSLPStemmer
 from nltk.corpus import wordnet
 import nltk
 import wikipedia
-import wikipedia.exceptions
 import requests
 from bs4 import BeautifulSoup
 from googletrans import Translator
@@ -121,6 +120,18 @@ class AdvancedChatbot:
                 processed = self._preprocess(original)
                 questions.append(processed if preprocessed else original)
         return questions
+
+    def _translate_input(self, text):
+        try:
+            # Verifica se o texto está em outro idioma e traduz para português
+            detected_lang = translator.detect(text).lang
+            if detected_lang != 'pt':
+                translated = translator.translate(text, dest='pt').text
+                return translated
+            return text
+        except Exception as e:
+            print(f"Erro ao traduzir: {e}")
+            return text
 
     def predict(self, input_text):
         # Verifica se a pergunta está em outro idioma e traduz
