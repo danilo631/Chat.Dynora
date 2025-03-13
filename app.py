@@ -48,7 +48,8 @@ def get_response():
         return jsonify({'response': response, 'status': 'success'})
 
     except Exception as e:
-        return jsonify({'error': str(e), 'status': 'error'}), 500
+        print(f"Erro no servidor: {e}")  # Log do erro no servidor
+        return jsonify({'error': 'Erro interno no servidor.', 'status': 'error'}), 500
 
 @app.route('/admin/list', methods=['GET'])
 def list_database():
@@ -56,7 +57,8 @@ def list_database():
     try:
         return jsonify(chatbot.database)
     except Exception as e:
-        return jsonify({'error': str(e), 'status': 'error'}), 500
+        print(f"Erro no servidor: {e}")  # Log do erro no servidor
+        return jsonify({'error': 'Erro interno no servidor.', 'status': 'error'}), 500
 
 @app.route('/admin/add', methods=['POST'])
 def add_entry():
@@ -91,7 +93,8 @@ def add_entry():
         return jsonify({'status': 'success', 'message': 'Entrada adicionada com sucesso!'})
 
     except Exception as e:
-        return jsonify({'error': str(e), 'status': 'error'}), 500
+        print(f"Erro no servidor: {e}")  # Log do erro no servidor
+        return jsonify({'error': 'Erro interno no servidor.', 'status': 'error'}), 500
 
 @app.route('/admin/remove', methods=['POST'])
 def remove_entry():
@@ -124,7 +127,8 @@ def remove_entry():
         return jsonify({'status': 'success', 'message': 'Entrada removida com sucesso!'})
 
     except Exception as e:
-        return jsonify({'error': str(e), 'status': 'error'}), 500
+        print(f"Erro no servidor: {e}")  # Log do erro no servidor
+        return jsonify({'error': 'Erro interno no servidor.', 'status': 'error'}), 500
 
 @app.route('/admin/update', methods=['POST'])
 def update_entry():
@@ -155,7 +159,8 @@ def update_entry():
         return jsonify({'error': f"Pergunta '{pergunta}' não encontrada!", 'status': 'error'}), 404
 
     except Exception as e:
-        return jsonify({'error': str(e), 'status': 'error'}), 500
+        print(f"Erro no servidor: {e}")  # Log do erro no servidor
+        return jsonify({'error': 'Erro interno no servidor.', 'status': 'error'}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))  # Porta padrão do Render
